@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Активные сессии</title>
+  <style>
+      body {
+          font-family: "Roboto Light", sans-serif;
+          padding: 5px 20px;
+          overflow-x: auto;
+      }
+
+      #sessions {
+          margin-top: 20px;
+      }
+
+      table {
+          table-layout: fixed;
+          width: 100%;
+          border-collapse: collapse;
+      }
+
+      th, td {
+          padding: 4px 6px;
+          border: 1px solid #ccc;
+      }
+  </style>
+</head>
+<body>
+<h1>Активные сессии</h1>
+<div id="sessions">
+  <h2 class="active">Активно на данный момент: 0</h2>
+  <table>
+    <thead>
+    <tr>
+      <th>ID сессии</th>
+      <th>Время старта</th>
+      <th>Браузер</th>
+      <th>IP адрес</th>
+    </tr>
+    </thead>
+    <tbody id="sessionTable"></tbody>
+  </table>
+</div>
+
+<script>
+    const ws = new WebSocket(`ws://${window.location.host}/ws`);
+    const clientIp = "{{ client_ip }}";
+    let session_id
+    console.log(navigator.userAgent)
+    ws.onopen = () => {
+        ws.send(JSON.stringify({
+            action: "connect",
+            user_agent: navigator.userAgent,
+            ip: clientIp
+        }));
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data?.action === 'set_session_id') session_id = data.session_id
+        else {
+            const sessionTable = document.getElementById("sessionTable");
+            const countActive = document.querySelector(".active")
+            countActive.innerText = `Активно на данный момент: ${data?.sessions?.length || 0}`
+            sessionTable.innerHTML = '';
+
+            data?.sessions?.forEach(session => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                        <td>${session.session_id}</td>
+                        <td>${new Date(session.start_time).toLocaleString()}</td>
+                        <td>${session.user_agent}</td>
+                        <td>${session.ip}</td>
+                    `;
+                sessionTable.appendChild(row);
+            });
+        }
+    };
+
+    window.addEventListener('beforeunload', () => {
+        ws.send(JSON.stringify({action: "disconnect", session_id: session_id}));
+    })
+</script>
+</body>
+</html>
