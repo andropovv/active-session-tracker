@@ -43,6 +43,14 @@ def remove_session(session_id: str):
     conn.close()
 
 
+def delete_all_sessions():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM sessions")
+    conn.commit()
+    conn.close()
+
+
 def get_all_sessions():
     conn = get_db_connection()
     cursor = conn.cursor()

@@ -4,13 +4,14 @@ import unittest
 from fastapi.testclient import TestClient
 
 from app import app
-from db import get_all_sessions
+from db import get_all_sessions, delete_all_sessions
 
 
 class TestApp(unittest.IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = TestClient(app)
+        delete_all_sessions()
 
     def test_read_root(self):
         response = self.client.get("/")
