@@ -8,8 +8,8 @@
 
 `cd active-session-tracker`
 
-`pip install -r requirements.txt`
+`py -m pip install -r requirements.txt`
 
-Запуск приложения: `uvicorn app:app --reload`
+Запуск приложения: `py -m uvicorn app:app --reload`
 
 Запуск тестов: `py -m unittest test_app.py`
