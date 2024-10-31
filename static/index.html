@@ -8,21 +8,36 @@
           font-family: "Roboto Light", sans-serif;
           padding: 5px 20px;
           overflow-x: auto;
+          background: #f8f8f8;
+      }
+
+      h1 {
+          text-align: center;
+      }
+
+      h2 {
+          color: #4d4d4d;
       }
 
       #sessions {
           margin-top: 20px;
       }
 
-      table {
-          table-layout: fixed;
-          width: 100%;
-          border-collapse: collapse;
+      .session__list {
+          display: flex;
+          width: 90%;
+          flex-direction: column;
+          gap: 5px
       }
 
-      th, td {
-          padding: 4px 6px;
-          border: 1px solid #ccc;
+      .session__item {
+          box-shadow: 6px 4px 2px rgba(2, 2, 2, 0.3);
+          background: white;
+          padding: 4px 15px;
+      }
+
+      .session__item p {
+          margin: 0 0 2px 0;
       }
   </style>
 </head>
@@ -30,29 +45,17 @@
 <h1>Активные сессии</h1>
 <div id="sessions">
   <h2 class="active">Активно на данный момент: 0</h2>
-  <table>
-    <thead>
-    <tr>
-      <th>ID сессии</th>
-      <th>Время старта</th>
-      <th>Браузер</th>
-      <th>IP адрес</th>
-    </tr>
-    </thead>
-    <tbody id="sessionTable"></tbody>
-  </table>
+  <section class="session__list"></section>
 </div>
 
 <script>
     const ws = new WebSocket(`ws://${window.location.host}/ws`);
-    const clientIp = "{{ client_ip }}";
     let session_id
-    console.log(navigator.userAgent)
+
     ws.onopen = () => {
         ws.send(JSON.stringify({
             action: "connect",
             user_agent: navigator.userAgent,
-            ip: clientIp
         }));
     };
 
@@ -60,20 +63,22 @@
         const data = JSON.parse(event.data);
         if (data?.action === 'set_session_id') session_id = data.session_id
         else {
-            const sessionTable = document.getElementById("sessionTable");
+            const sessionsList = document.querySelector('.session__list')
             const countActive = document.querySelector(".active")
             countActive.innerText = `Активно на данный момент: ${data?.sessions?.length || 0}`
-            sessionTable.innerHTML = '';
+            sessionsList.innerHTML = '';
 
             data?.sessions?.forEach(session => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                        <td>${session.session_id}</td>
-                        <td>${new Date(session.start_time).toLocaleString()}</td>
-                        <td>${session.user_agent}</td>
-                        <td>${session.ip}</td>
+                      <div class="session__item">
+                        <h3>Id сессии: ${session?.session_id}</h3>
+                        <p>Время запуска: ${new Date(session?.start_time).toLocaleString()}</p>
+                        <p>Браузер: ${session?.user_agent}</p>
+                        <p>IP-адрес: ${session?.ip}</p>
+                      </div>
                     `;
-                sessionTable.appendChild(row);
+                sessionsList.prepend(row);
             });
         }
     };
