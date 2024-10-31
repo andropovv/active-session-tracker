@@ -13,6 +13,7 @@ class TestApp(unittest.IsolatedAsyncioTestCase):
         cls.client = TestClient(app)
         delete_all_sessions()
 
+
     def test_read_root(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
